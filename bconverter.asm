@@ -14,7 +14,7 @@ maxInputCount 	dw ?
 completeDigit 	dd 0
 convertedBase 	dw ?
 baseToConvert 	dw 2
-digitCounter	db ?
+digitCounter	dw ?
 currentDigitPosition dw ?
 
 .code
@@ -82,7 +82,9 @@ main proc
 		;		PRINT NUMBER INTO BASE ###############################################
 		whileConvertingBase:
 			call	baseConverter
+			
 			push 	dx
+
 			inc 	digitCounter
 			cmp		eax, 0
 		jnz whileConvertingBase
@@ -108,7 +110,7 @@ main proc
 		;	INCREMENT BASE
 		
 		inc		baseToConvert
-		cmp		baseToConvert, 10
+		cmp		baseToConvert, 38
 	jnz	loopBase
 	mov		ax, 4c00h
 	int		21h
@@ -119,9 +121,8 @@ baseConverter proc
 	mov 	edx, 0
 	
 	mov		eax, ebx
-	mov		ecx, baseToConvert
+	mov		cx, baseToConvert
 	div		ecx
-	
 	
 	mov		ebx, eax
 
@@ -132,11 +133,30 @@ baseConverter endp
 ; ########################################
 displayDigit proc
 	mov		ah, 6h
+	cmp		dl,	10
+	jnc		convertToAlpha
 	add		dl, 30h			; Convert number into character
 	int		21h
 	
+	sub		dl, 30h
+	cmp		dl, 10
+	jc		terminateDisplay
+	
+	convertToAlpha:
+		call	convert2DigitsTo1Digit
+		
+	terminateDisplay:
 	ret
 displayDigit endp
+
+; if it is more than 10 it will make it Alphabet
+; ########################################
+convert2DigitsTo1Digit proc
+	add		dl, 37h
+	int	21h
+	
+	ret
+convert2DigitsTo1Digit endp
 
 ; ########################################
 keyIn proc
